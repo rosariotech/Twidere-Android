@@ -29,4 +29,43 @@ addons:
 
 before_cache:
   - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
-  - rm -fr $HOME/.gradle/
+  - rm -fr $HOME/.gradle/cache/*/plugin-resolution/
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+    - $HOME/.m2/
+
+  before_install:
+    - ./travis/scripts/decote_private_configs.sh
+
+  install:
+    - rvm default exec gem install fastlane
+    - ./travis/scripts/fetch_private_files.sh
+    - cat ./travis/configs/gradle.properties > ./gradle.properties
+
+  before_script:
+    - ./travis/scripts/patch_sources.sh
+    - ./travis/scripts/test_private_files.sh
+
+  script:
+    - ./gradlew build
+
+  after_failure:
+    - ./travis/scripts/upload_error_logs.sh
+
+  deploy:
+    - provider: releases
+      prerelease: true
+      api_key:
+        secure: "WKtKwda3hegqO9QVujdonNoL2ESJUR80WHNq/13wDsbCABo/GNnuqHNYZmml3wAifEKKeCEYfNZRUuHQ8eHs54Lj5BlGRX5i+1LrGhhgnVFQgmrhIv4RJuVQ663kDEh+Jwo4vowJ2mxNDvLvOhfZwxjULPDiknqy6u5PyW3id5M="
+      file_glob: true
+      on:
+        repo: TwidereProject/Twidere-Android
+        tags: true
+    - provider: script
+      script: ./travis/scripts/google_play_deploy.sh ./twidere/src/google/.supplyrc
+      skip_cleanup: true
+      on:
+        repo: TwidereProject/Twidere-Android
+        tags: true
