@@ -71,5 +71,5 @@ else
 
 Por favor sete o JAVA_HOME no seu environment para bater com a instalação."
 fi
-
+d"
 if 
