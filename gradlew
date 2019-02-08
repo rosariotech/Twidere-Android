@@ -72,4 +72,5 @@ else
 Por favor sete o JAVA_HOME no seu environment para bater com a instalação."
 fi
 
-if 
+if ["$cygwin"="false" -a "$darwin" = "false" -a "$nonstop" = "false" ] ; then
+    MAX_FD_LIMIT=`ulimit -H -n`
