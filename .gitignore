@@ -29,3 +29,5 @@ hs_err_*.log
 .externalNativeBuild/
 
 *.old
+.project
+.settings/org.eclipse.buildship.core.prefs
