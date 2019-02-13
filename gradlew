@@ -74,3 +74,74 @@ fi
 
 if ["$cygwin"="false" -a "$darwin" = "false" -a "$nonstop" = "false" ] ; then
     MAX_FD_LIMIT=`ulimit -H -n`
+    if [$? -eq 0] ; then
+        if [ "$MAX_FD" = "maximux" -o "$MAX_FD" = "max" ] ; then
+            MAX_FD="$MAX_FD_LIMIT"
+        fi
+        ulimit -n $MAX_FD
+        if [$? -ne 0]; then
+            warn "Não foi possível setar o limite máximo do descritor do arquivo: $MAX_FD"
+        fi
+    else
+        warn "Não foi possível setar o limite máximo do descritor do arquivo: $MAX_FD_LIMIT"
+    fi
+fi
+
+if $darwin; then
+    GRADLE_OPTS="$GRADLE_OPTS \"-Xdock:name=$APP_NAME\" \"-Xdock:icon=$APP_HOME/media/gradle.icns\""
+fi
+
+if $cygwin; then
+    APP_HOME=`cytpath --path --mixed "$APP_HOME"`
+    CLASSPATH=`cytpath --path --mixed "$CLASSPATH"`
+    JAVACMD=`cytpath --path --mixed "$JAVACMD"`
+
+    ROOTDIRSRAW=`find -L / -maxdepth 1 -mindepth 1 -type d 2>/dev/null`
+    SEP=""
+    for dir in $ROOTDIRSRAW; do
+        ROOTDIRS="$ROOTDIRS$SEP$dir"
+        SEP="|"
+    done
+    OURCYGPATTERN="(^($ROOTDIRS))"
+    if["$GRADLE_CYGPATTERN"!=""]; then
+        OURCYGPATTERN="$OURCYGPATTERN|($GRADLE_CYGPATTERN)"
+    fi
+
+    i=0
+    for arg in "$@"; do
+        CHECK=`echo "$arg"|egrep -c "$OURCYGPATTERN" -`
+        CHECK2=`echo "$arg"|egrep -c "^-"`
+
+        if [ $CHECK -ne 0 ] && [$CHECK2 -eq 0]; then
+            eval `echo args$i`=`cytpath --path --ignore --mixed "$arg"`
+        else
+            eval `echo args$i`="\"$arg\""
+        fi
+        i=$((i+1))
+    done
+    case $i in
+        (0) set -- ;;
+        (1) set -- "$args0" ;;
+        (2) set -- "$args0" "$args1" ;;
+        (3) set -- "$args0" "$args1" "$args2" ;;
+        (4) set -- "$args0" "$args1" "$args2" "$args3" ;;
+        (5) set -- "$args0" "$args1" "$args2" "$args3" "$args4" ;;
+        (6) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" ;;
+        (7) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" "$args7" ;;
+        (8) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" "$args7" "$args8" ;;
+    esac
+fi
+
+save(){
+    for i do printf %s\\n "$i" | sed "s/'/'\\\\''/g;1s/^/'/;\$s/\$/' \\\\/" ; done
+    echo " "
+}
+APP_ARGS=$(save "$@")
+
+eval set -- $DEFAULT_JVM_OPTS $JAVA_OPTS $GRADLE_OPTS "\"-Dorg.gradle.appname=$APP_BASE_NAME\"" -classpath "\"$CLASSPATH\"" org.gradle.wrapper.GradleWrapperMain "$APP_ARGS"
+
+if [ "$(uname)" = "Darwin"] && [ "$HOME" = "$PWD" ]; then
+    cd "$(dirname "$0")"
+fi
+
+exec "$JAVACMD" "$@"
