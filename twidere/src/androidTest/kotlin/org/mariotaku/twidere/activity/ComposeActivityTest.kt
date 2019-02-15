@@ -80,4 +80,75 @@ class ComposeActivityTest{
         activity.requestSkipDraft()
         activity.finish()
     }
+    @Test
+    fun testReplySelf(){
+        val context = InstrumentationRegistry.getContext()
+        val targetContext = InstrumentationRegistry.getTargetContext()
+        val status: ParcelableStatus = context.resources.getJsonResource(R.raw.parcelable_status_848051071444410368)
+        val intent = Intent(INTENT_ACTION_REPLY)
+        intent.setClass(targetContext, ComposeActivity::class.java)
+        intent.putExtra(EXTRA_STATUS, status)
+        intent.putExtra(EXTRA_STATUS_DRAFT, true)
+        val activity = activityRule.launchActivity(intent)
+        activityRule.runOnUiThread{
+            activity.editText.setText("@drahcir9 @rosariotech Testando Reply")
+        }
+        val statusUpdate = activity.getStatusUpdateTest(false)
+        Assert.assertEquals("Testando reply", statusUpdate.text)
+        assertExcludedMatches(emptyArray(), statusUpdate)
+        activity.requestSkipDraft()
+        activity.finish()
+    }
+    @Test
+    fun testReplySelfRemovedSomeMentions(){
+        val context = InstrumentationRegistry.getContext()
+        val targetContext = InstrumentationRegistry.getTargetContext()
+        val status: ParcelableStatus = context.resources.getJsonResource(R.raw.parcelable_status_852737226718838790)
+        val intent = Intent(INTENT_ACTION_REPLY)
+        intent.setClass(targetContext, ComposeActivity::class.java)
+        intent.putExtra(EXTRA_STATUS, status)
+        intent.putExtra(EXTRA_STATUS_DRAFT, true)
+        val activity = activityRule.launchActivity(intent)
+        activityRule.runOnUiThread{
+            activity.editText.setText("@rosariotech Test Reply")
+        }
+        val statusUpdate = activity.getStatusUpdateTest(false)
+        Assert.assertEquals("Test Reply", statusUpdate.text)
+        assertExcludedMatches(arrayOf("57610574"), statusUpdate)
+        activity.requestSkipDraft()
+        activity.finish()
+    }
+    @Test
+    fun testReplySelfNoMentions(){
+        val context = InstrumentationRegistry.getContext()
+        val targetContext = InstrumentationRegistry.getTargetContext()
+        val status: ParcelableStatus = context.resources.getJsonResource(R.raw.parcelable_status_852737226718838790)
+        val intent = Intent(INTENT_ACTION_REPLY)
+        intent.setClass(targetContext, ComposeActivity::class.java)
+        intent.putExtra(EXTRA_STATUS, status)
+        intent.putExtra(EXTRA_STATUS_DRAFT, true)
+        val activity = activityRule.launchActivity(intent)
+        activityRule.runOnUiThread{
+            activity.editText.setText("Test Reply")
+        }
+        val statusUpdate = activity.getStatusUpdateTest(false)
+        Assert.assertEquals("Test Reply", statusUpdate.text)
+        assertExcludedMatches(arrayOf("57610574", "583328497"), statusUpdate)
+        activity.requestSkipDraft()
+        activity.finish()
+    }
+    private fun ComposeActivity.getStatusUpdateTest(checkLength: Boolean): ParcelableStatusUpdate{
+        val getStatusUpdate=javaClass.getDeclaredMethod("getStatusUpdate",
+            kotlin.Boolean::class.java).apply{
+                isAccessible = true
+            }
+        return getStatusUpdate(this, checkLength) as ParcelableStatusUpdate
+    }
+    private fun assertExcludedMatches(expectedIds: Array<String>, statusUpdate: ParcelableStatusUpdate): Boolean {
+        return statusUpdate.excluded_reply_user_ids?.all{excludedId ->
+            expectedIds.any {expectation 0>
+                expectation.equals(excludedId, ignoreCase = true)
+            }
+        } ?: expectedIds.isEmpty()
+    }
 }
